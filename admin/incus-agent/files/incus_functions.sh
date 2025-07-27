@@ -63,17 +63,6 @@ function copy_config() {
     chown -R root:root "${INCUS_AGENT_PATH}"
 }
 
-function copy_agent() {
-    MNT_P="${INCUS_AGENT_PATH}/.mnt"
-    mkdir -p "${MNT_P}"
-    mount_incus agent "${MNT_P}"
-    cp -f "${MNT_P}/${INCUS_AGENT_PROG}.linux.$(uname -m)" "${INCUS_AGENT}"
-    chown -R root:root "${INCUS_AGENT}"
-    umount "${MNT_P}"
-    rmdir "${MNT_P}"
-}
-
-
 function incus_agent_exists() {
     [ -d "${INCUS_AGENT_PATH}" ] && [ -x "${INCUS_AGENT}" ] && return 0 || return 1
 }

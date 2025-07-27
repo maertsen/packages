@@ -23,7 +23,6 @@ start_service() {
 	log debug "${INCUS_AGENT_PROG} is not installed, installing..." 
 	create_incus_agent_dir && \
 	    copy_config && \
-	    copy_agent && \
 	    log debug "${INCUS_AGENT_PROG} has been installed!" || \
 	    fail "${INCUS_AGENT_PROG} installation has been failed!"
     else
