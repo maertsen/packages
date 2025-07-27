@@ -1,0 +1,45 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=20
+STOP=95
+
+
+INCUS_AGENT_START='. $IPKG_INSTROOT/lib/functions/incus_functions.sh; incus_agent_start'
+
+boot() {
+    start "$@"
+}
+
+start_service() {
+    . $IPKG_INSTROOT/lib/functions/incus_functions.sh
+    
+    log debug "Setting /dev/virtio-ports/ up..."
+    setup_vports && log debug "/dev/virtio-ports/ set-up completed!" || fail "/dev/virtio-ports/ set-up failed!"
+    
+    log debug "Checking if ${INCUS_AGENT_PROG} is installed..."
+    if ! incus_agent_exists
+    then
+	log debug "${INCUS_AGENT_PROG} is not installed, installing..." 
+	create_incus_agent_dir && \
+	    copy_config && \
+	    copy_agent && \
+	    log debug "${INCUS_AGENT_PROG} has been installed!" || \
+	    fail "${INCUS_AGENT_PROG} installation has been failed!"
+    else
+	log debug "${INCUS_AGENT_PROG} is installed already. Reusing it..."
+    fi
+
+    procd_open_instance
+    procd_set_param command /bin/sh -xc "${INCUS_AGENT_START}"
+    procd_set_param stdout 0
+    procd_set_param stderr 0
+    procd_set_param respawn 180 10 10
+    procd_close_instance
+}
+
+stop_service() {
+    . $IPKG_INSTROOT/lib/functions/incus_functions.sh
+    log info "Stopping ${INCUS_AGENT_PROG}..."
+    incus_agent_stop && log info "${INCUS_AGENT_PROG} stopped." || log error "${INCUS_AGENT_PROG} failed to stop!"
+}
